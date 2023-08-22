@@ -1,0 +1,12 @@
+# PyCharm
+.idea/
+
+# Enviroments
+env_3.9.0/
+.env
+
+# Migrations
+/**/migrations
+
+# Python
+__pycache__/
