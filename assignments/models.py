@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, AbstractUser
+from django.contrib.auth.models import BaseUserManager, AbstractUser
 from django.db import models
 
 
@@ -39,3 +39,42 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.email
+
+
+class Classroom(models.Model):
+    name = models.CharField(max_length=100)
+    users = models.ManyToManyField('CustomUser', related_name='classrooms')
+
+    def __str__(self):
+        return self.name
+
+
+class Course(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    classrooms = models.ManyToManyField(Classroom, related_name='courses')
+
+    def __str__(self):
+        return self.name
+
+
+class Assignment(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    course = models.ForeignKey(Course, on_delete=models.CASCADE)
+    sub_end_date = models.DateTimeField()
+
+    def __str__(self):
+        return self.title
+
+
+class Submission(models.Model):
+    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    sub_date = models.DateTimeField(auto_now_add=True)
+    file_url = models.FileField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user} - {self.assignment}"
