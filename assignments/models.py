@@ -72,7 +72,7 @@ class Submission(models.Model):
     user = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
     sub_date = models.DateTimeField(auto_now_add=True)
-    file_url = models.FileField()
+    file = models.FileField()
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
