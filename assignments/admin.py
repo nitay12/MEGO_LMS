@@ -5,9 +5,6 @@ from .models import CustomUser, Classroom, Course, Assignment, Submission
 
 @admin.register(CustomUser)
 class CustomUserAdmin(admin.ModelAdmin):
-    # Define fields and list_display
-    # ...
-
     def get_queryset(self, request):
         qs = super().get_queryset(request)
         if request.user.is_superuser:
