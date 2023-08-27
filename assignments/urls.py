@@ -1,11 +1,40 @@
 from django.urls import path
-from .views import ClassroomListCreateView, CourseListCreateView, AssignmentListCreateView, SubmissionListCreateView
 
-app_name = 'assignments'
+from .views import (
+    UserListCreateView, UserDetailView,
+    CourseListCreateView, CourseDetailView,
+    ClassroomListCreateView, ClassroomDetailView,
+    AssignmentListCreateView, AssignmentDetailView,
+    SubmissionListCreateView, SubmissionDetailView,
+)
 
 urlpatterns = [
-    path('classrooms/', ClassroomListCreateView.as_view(), name='classroom-list-create'),
-    path('courses/', CourseListCreateView.as_view(), name='course-list-create'),
-    path('assignments/', AssignmentListCreateView.as_view(), name='assignment-list-create'),
-    path('submissions/', SubmissionListCreateView.as_view(), name='submission-list-create'),
+    # Users
+    path('users/', UserListCreateView.as_view(), name='user-list'),
+    path('users/<int:pk>/', UserDetailView.as_view(), name='user-detail'),
+
+    # Courses
+    path('courses/', CourseListCreateView.as_view(), name='course-list'),
+    path('courses/<int:pk>/', CourseDetailView.as_view(), name='course-detail'),
+
+    # Course Assignments
+    path('courses/<int:course_id>/assignments/', AssignmentListCreateView.as_view(), name='assignment-list'),
+    path('courses/<int:course_id>/assignments/<int:pk>/submissions/', SubmissionListCreateView.as_view(),
+         name='submission-list'),
+
+    # Classrooms
+    path('classrooms/', ClassroomListCreateView.as_view(), name='classroom-list'),
+    path('classrooms/<int:pk>/', ClassroomDetailView.as_view(), name='classroom-detail'),
+
+    # Assignments
+    path('assignments/', AssignmentListCreateView.as_view(), name='assignment-list-all'),
+    path('assignments/<int:pk>/', AssignmentDetailView.as_view(), name='assignment-detail'),
+
+    # Assignment Submissions
+    path('assignments/<int:assignment_id>/submissions/', SubmissionListCreateView.as_view(),
+         name='submission-list-assignment'),
+
+    # Submissions
+    path('submissions/', SubmissionListCreateView.as_view(), name='submission-list-all'),
+    path('submissions/<int:pk>/', SubmissionDetailView.as_view(), name='submission-detail'),
 ]
