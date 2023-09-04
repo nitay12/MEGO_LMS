@@ -25,13 +25,13 @@ class CustomUserManager(BaseUserManager):
 
 
 class CustomUser(AbstractUser):
-    email = models.EmailField(unique=True)
-    first_name = models.CharField(max_length=30)
-    last_name = models.CharField(max_length=30)
+    email = models.EmailField(unique=True, null=False, blank=False)
+    first_name = models.CharField(max_length=30, null=False, blank=False)
+    last_name = models.CharField(max_length=30, null=False, blank=False)
     is_active = models.BooleanField(default=True)
+    is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     date_joined = models.DateTimeField(auto_now_add=True)
-
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'email'
@@ -42,7 +42,7 @@ class CustomUser(AbstractUser):
 
 
 class Classroom(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, null=False, unique=True)
     users = models.ManyToManyField('CustomUser', related_name='classrooms')
 
     def __str__(self):
@@ -59,8 +59,8 @@ class Course(models.Model):
 
 
 class Assignment(models.Model):
-    title = models.CharField(max_length=200)
-    description = models.TextField()
+    title = models.CharField(max_length=200, null=False, blank=False)
+    description = models.TextField(null=True, blank=True)
     course = models.ForeignKey(Course, on_delete=models.CASCADE)
     sub_end_date = models.DateTimeField()
 
@@ -69,8 +69,8 @@ class Assignment(models.Model):
 
 
 class Submission(models.Model):
-    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
-    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE)
+    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, null=False)
+    assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, null=False)
     sub_date = models.DateTimeField(auto_now_add=True)
     file = models.FileField()
     comment = models.TextField(max_length=500, null=True)
