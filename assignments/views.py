@@ -1,6 +1,6 @@
 from django.utils import timezone
 from rest_framework import generics
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Course, Classroom, Assignment, Submission, CustomUser
@@ -44,6 +44,22 @@ class CourseDetailView(generics.RetrieveUpdateDestroyAPIView):
     authentication_classes = [JWTAuthentication]
 
 
+class CourseAssignmentsListView(generics.ListAPIView):
+    serializer_class = AssignmentSerializer
+    permission_classes = [IsAdminOrCourseOwner]
+    authentication_classes = [JWTAuthentication]
+
+    def get_queryset(self):
+        # Get the course_id from the URL parameter
+        course_id = self.kwargs.get('id')
+        is_course_owner = Course.objects.filter(classrooms__users=self.request.user, id=course_id).exists()
+        print(is_course_owner)
+        if self.request.user.is_admin or self.request.user.is_staff or is_course_owner:
+            return Assignment.objects.filter(course_id=course_id)
+        else:
+            raise PermissionDenied({"error": "you are not signed to this course"})
+
+
 class ClassroomListCreateView(generics.ListCreateAPIView):
     queryset = Classroom.objects.all()
     serializer_class = ClassroomSerializer
@@ -82,6 +98,26 @@ class AssignmentDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = AssignmentSerializer
     permission_classes = [IsAdminOrExaminerOrAssignmentOwner]
     authentication_classes = [JWTAuthentication]
+
+
+class AssignmentSubmissionsListView(generics.ListAPIView):
+    serializer_class = SubmissionSerializer
+    permission_classes = [IsAdminOrExaminerOrSubmissionOwner]
+    authentication_classes = [JWTAuthentication]
+
+    def get_queryset(self):
+        # Get the Assignment_id from the URL parameter
+        assignment_id = self.kwargs.get('id')
+        is_assignment_owner = Assignment.objects.filter(course__classrooms__users=self.request.user,
+                                                        id=assignment_id).exists()
+        print(assignment_id)
+        print(is_assignment_owner)
+        if self.request.user.is_admin or self.request.user.is_staff:
+            return Submission.objects.filter(assignment=assignment_id)
+        elif is_assignment_owner:
+            return Submission.objects.filter(assignment=assignment_id, user=self.request.user)
+        else:
+            raise PermissionDenied({"error": "you are not signed to this assignment course"})
 
 
 class SubmissionListCreateView(generics.ListCreateAPIView):

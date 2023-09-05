@@ -2,9 +2,9 @@ from django.urls import path
 
 from .views import (
     UserListCreateView, UserDetailView,
-    CourseListCreateView, CourseDetailView,
+    CourseListCreateView, CourseDetailView, CourseAssignmentsListView,
     ClassroomListCreateView, ClassroomDetailView,
-    AssignmentListCreateView, AssignmentDetailView,
+    AssignmentListCreateView, AssignmentDetailView, AssignmentSubmissionsListView,
     SubmissionListCreateView, SubmissionDetailView,
 )
 
