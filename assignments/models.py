@@ -74,6 +74,7 @@ class Submission(models.Model):
     sub_date = models.DateTimeField(auto_now_add=True)
     file = models.FileField()
     comment = models.TextField(max_length=500, null=True)
+    score = models.SmallIntegerField(null=False, blank=False, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
