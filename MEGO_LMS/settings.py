@@ -1,6 +1,10 @@
 import os
+from datetime import timedelta
 from pathlib import Path
+
 from dotenv import load_dotenv
+from drf_yasg import openapi
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv()
@@ -16,7 +20,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -29,15 +32,29 @@ INSTALLED_APPS = [
     'assignments',
     'rest_framework',
     'rest_framework_simplejwt',
-
+    'drf_yasg',
 ]
+SWAGGER_SETTINGS = {
+    "SECURITY_DEFINITIONS": {
+        "JWTAuth": {
+            "type": 'apiKey',
+            "name": "Authorization",
+            "in": openapi.IN_HEADER,
+            "description": "JWT Token",
+        }
+    },
+    "USE_SESSION_AUTH": False,  # Disable session authentication
+    "LOGIN_URL": "admin:login",  # Change this to your login URL
+}
 AUTH_USER_MODEL = 'assignments.CustomUser'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ),
+        'rest_framework_simplejwt.authentication.JWTAuthentication')
 }
-
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(hours=3),
+    "TOKEN_OBTAIN_SERIALIZER": "assignments.serializers.MyTokenObtainPairSerializer",
+}
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -50,10 +67,12 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'MEGO_LMS.urls'
 
+DRF_YASG_TEMPLATES_DIR = Path(
+    __file__).resolve().parent.parent / "env_3.9.0" / "lib" / "site-packages" / "drf_yasg" / "templates"
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [DRF_YASG_TEMPLATES_DIR],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -68,7 +87,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'MEGO_LMS.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
@@ -82,7 +100,6 @@ DATABASES = {
         'PORT': os.environ['DB_PORT'],
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -102,7 +119,6 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/4.0/topics/i18n/
 
@@ -113,7 +129,6 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
