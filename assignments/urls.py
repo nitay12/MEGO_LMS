@@ -16,10 +16,7 @@ urlpatterns = [
     # Courses
     path('courses/', CourseListCreateView.as_view(), name='course-list'),
     path('courses/<int:pk>/', CourseDetailView.as_view(), name='course-detail'),
-    path('courses/<int:id>/assignments/', CourseAssignmentsListView.as_view(), name='course-detail'),
-
-    # Course Assignments
-    path('courses/<int:course_id>/assignments/', AssignmentListCreateView.as_view(), name='assignment-list'),
+    path('courses/<int:id>/assignments/', CourseAssignmentsListView.as_view(), name='course-assignment-list'),
 
     # Classrooms
     path('classrooms/', ClassroomListCreateView.as_view(), name='classroom-list'),
