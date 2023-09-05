@@ -16,6 +16,7 @@ urlpatterns = [
     # Courses
     path('courses/', CourseListCreateView.as_view(), name='course-list'),
     path('courses/<int:pk>/', CourseDetailView.as_view(), name='course-detail'),
+    path('courses/<int:id>/assignments/', CourseAssignmentsListView.as_view(), name='course-detail'),
 
     # Course Assignments
     path('courses/<int:course_id>/assignments/', AssignmentListCreateView.as_view(), name='assignment-list'),
@@ -29,7 +30,7 @@ urlpatterns = [
     path('assignments/<int:pk>/', AssignmentDetailView.as_view(), name='assignment-detail'),
 
     # Assignment Submissions
-    path('assignments/<int:assignment_id>/submissions/', SubmissionListCreateView.as_view(),
+    path('assignments/<int:id>/submissions/', AssignmentSubmissionsListView.as_view(),
          name='submission-list-assignment'),
 
     # Submissions
