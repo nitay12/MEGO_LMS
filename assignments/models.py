@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.contrib.auth.models import BaseUserManager, AbstractUser
 from django.db import models
 
@@ -68,15 +70,42 @@ class Assignment(models.Model):
         return self.title
 
 
+def generate_file_name(instance, filename):
+    # Get assignment title, user's first name, and user's last name
+    assignment_title = instance.assignment.title
+    user_first_name = instance.user.first_name
+    user_last_name = instance.user.last_name
+
+    # Construct the final file name
+    file_name = f"submissions/{assignment_title}_{user_first_name}_{user_last_name}.py"
+
+    return file_name
+
+
 class Submission(models.Model):
     user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, null=False)
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, null=False)
     sub_date = models.DateTimeField(auto_now_add=True)
-    file = models.FileField()
+    file = models.FileField(upload_to=generate_file_name)
     comment = models.TextField(max_length=500, null=True)
     score = models.SmallIntegerField(null=False, blank=False, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    @staticmethod
+    def generate_file_name(instance, filename):
+        # Get assignment title, user's first name, and user's last name
+        assignment_title = instance.assignment.title
+        user_first_name = instance.user.first_name
+        user_last_name = instance.user.last_name
+
+        # Format the submission date as YYYYMMDDHHMMSS
+        submission_date = datetime.now().strftime('%Y%m%d%H%M%S')
+
+        # Construct the final file name
+        file_name = f"{assignment_title}_{user_first_name}{user_last_name}_{submission_date}.py"
+
+        return f"submissions/{file_name}"  # Specify the subdirectory within 'media/'
 
     def __str__(self):
         return f"{self.user} - {self.assignment}"
