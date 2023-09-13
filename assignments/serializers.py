@@ -13,6 +13,8 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         role = "student"
         if user.is_admin:
             role = "admin"
+        elif not user.activated_account:
+            role = "inactive"
         elif user.is_staff:
             role = "examiner"
 

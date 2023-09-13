@@ -1,13 +1,20 @@
+from django.contrib.auth import get_user_model
 from django.utils import timezone
-from rest_framework import generics
-from rest_framework.exceptions import ValidationError, PermissionDenied
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import generics, status
+from rest_framework.decorators import api_view
+from rest_framework.exceptions import ValidationError, PermissionDenied, AuthenticationFailed
+from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
 from .models import Course, Classroom, Assignment, Submission, CustomUser
 from .permissions import IsAdminOrCourseOwner, IsAdminOrUserOwner, IsAdminOrClassroomOwner, \
-    IsAdminOrExaminerOrAssignmentOwner, IsAdminOrExaminerOrSubmissionOwner
+    IsAdminOrExaminerOrAssignmentOwner, IsAdminOrExaminerOrSubmissionOwner, IsActivatedAccount
 from .serializers import CourseSerializer, ClassroomSerializer, AssignmentSerializer, SubmissionSerializer, \
     CustomUserSerializer
+from .serializers import MyTokenObtainPairSerializer
+from .utils import send_activation_mail
 
 
 class UserListCreateView(generics.ListCreateAPIView):
@@ -15,6 +22,25 @@ class UserListCreateView(generics.ListCreateAPIView):
     serializer_class = CustomUserSerializer
     permission_classes = [IsAdminOrUserOwner]
     authentication_classes = [JWTAuthentication]
+
+    def perform_create(self, serializer):
+        # Generate a random password
+        import random
+        import string
+        password = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
+
+        # Create a new user with the generated password
+        user = CustomUser.objects.create_user(
+            email=self.request.data['email'],
+            password=password,
+        )
+        user.first_name = self.request.data['first_name']
+        user.last_name = self.request.data['last_name']
+        user.save()
+
+        send_activation_mail(user.email, password)
+
+        return user
 
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -153,3 +179,52 @@ class SubmissionDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = SubmissionSerializer
     permission_classes = [IsAdminOrExaminerOrSubmissionOwner]
     authentication_classes = [JWTAuthentication]
+
+
+User = get_user_model()
+
+
+@swagger_auto_schema(
+    method='post',
+    request_body=openapi.Schema(
+        type=openapi.TYPE_OBJECT,
+        properties={
+            'email': openapi.Schema(type=openapi.TYPE_STRING, description='User email'),
+            'password': openapi.Schema(type=openapi.TYPE_STRING, description='Current password'),
+            'new_password': openapi.Schema(type=openapi.TYPE_STRING, description='New password'),
+            'confirm_new_password': openapi.Schema(type=openapi.TYPE_STRING, description='Confirm new password'),
+        },
+        required=['email', 'password', 'new_password', 'confirm_new_password']
+    ),
+    responses={
+        200: 'Token obtained successfully',
+        400: 'Bad request or validation error',
+        401: 'Authentication failed',
+    }
+)
+@api_view(['POST'])
+def activate(request):
+    # Get data from request body
+    email = request.data.get('email')
+    password = request.data.get('password')
+    new_password = request.data.get('new_password')
+    confirm_new_password = request.data.get('confirm_new_password')
+
+    user: CustomUser = User.objects.get(email=email)
+
+    if not user.check_password(password):
+        raise AuthenticationFailed('Bad credentials')  # Respond with a bad credentials error
+
+    if new_password != confirm_new_password:
+        return Response({'error': 'New password and confirmation do not match'}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Change the user's password and set is_active to True
+    user.set_password(new_password)
+    user.activated_account = True
+    user.save()
+
+    # Create a new JWT token for the user
+    token_serializer = MyTokenObtainPairSerializer()
+    token = token_serializer.get_token(user)
+
+    return Response({'refresh': str(token), 'access': str(token.access_token)}, status=status.HTTP_200_OK)

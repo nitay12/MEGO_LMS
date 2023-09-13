@@ -67,12 +67,10 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'MEGO_LMS.urls'
 
-DRF_YASG_TEMPLATES_DIR = Path(
-    __file__).resolve().parent.parent / "env_3.9.0" / "lib" / "site-packages" / "drf_yasg" / "templates"
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [DRF_YASG_TEMPLATES_DIR],
+        'DIRS': [os.path.join(BASE_DIR, 'assignments', 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -141,3 +139,11 @@ MEDIA_ROOT = '/home/nitay12/MEGO_LMS/media'
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ['EMAIL_HOST']
+EMAIL_PORT = int(os.environ['EMAIL_PORT'])
+EMAIL_USE_TLS = os.environ['EMAIL_USE_TLS']
+EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
+EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
+DEFAULT_FROM_EMAIL = os.environ['EMAIL_HOST_USER']

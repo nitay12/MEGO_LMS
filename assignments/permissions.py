@@ -7,6 +7,11 @@ CustomUser = get_user_model()
 
 
 # User permissions
+class IsActivatedAccount(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.activated_account
+
+
 class IsAdminOrUserOwner(permissions.BasePermission):
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
