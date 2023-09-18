@@ -36,10 +36,10 @@ class IsAdminOrCourseOwner(permissions.BasePermission):
             return request.user.is_authenticated and request.user.is_admin
 
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
-            return obj.classrooms.filter(users=request.user).exists()
         if request.user.is_admin:
             return True
+        if request.method in permissions.SAFE_METHODS:
+            return obj.classrooms.filter(users=request.user).exists()
         return False
 
 
@@ -52,10 +52,10 @@ class IsAdminOrClassroomOwner(permissions.BasePermission):
             return request.user.is_authenticated and request.user.is_admin
 
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
-            return obj.users.filter(email=request.user.email).exists()
         if request.user.is_admin:
             return True
+        if request.method in permissions.SAFE_METHODS:
+            return obj.users.filter(email=request.user.email).exists()
         return False
 
 
@@ -76,10 +76,10 @@ class IsAdminOrExaminerOrAssignmentOwner(permissions.BasePermission):
             return request.user.is_authenticated and (request.user.is_admin or request.user.is_staff)
 
     def has_object_permission(self, request, view, obj):
-        if request.method in permissions.SAFE_METHODS:
-            return obj.course.classrooms.filter(users=request.user).exists()
         if request.user.is_admin or request.user.is_staff:
             return True
+        if request.method in permissions.SAFE_METHODS:
+            return obj.course.classrooms.filter(users=request.user).exists()
         return False
 
 
