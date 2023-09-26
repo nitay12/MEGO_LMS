@@ -20,8 +20,14 @@ from .utils import send_activation_mail
 class UserListCreateView(generics.ListCreateAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
-    permission_classes = [IsAdminOrUserOwner]
+    permission_classes = [IsAdminOrUserOwner, IsActivatedAccount]
     authentication_classes = [JWTAuthentication]
+
+    def get_queryset(self):
+        if self.request.user.is_admin:
+            return CustomUser.objects.all()
+        else:
+            return CustomUser.objects.filter(id=self.request.user.id)
 
     def perform_create(self, serializer):
         # Generate a random password
@@ -46,14 +52,14 @@ class UserListCreateView(generics.ListCreateAPIView):
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = CustomUser.objects.all()
     serializer_class = CustomUserSerializer
-    permission_classes = [IsAdminOrUserOwner]
+    permission_classes = [IsAdminOrUserOwner, IsActivatedAccount]
     authentication_classes = [JWTAuthentication]
 
 
 class CourseListCreateView(generics.ListCreateAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = [IsAdminOrCourseOwner]
+    permission_classes = [IsAdminOrCourseOwner, IsActivatedAccount]
     authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
@@ -66,13 +72,13 @@ class CourseListCreateView(generics.ListCreateAPIView):
 class CourseDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = [IsAdminOrCourseOwner]
+    permission_classes = [IsAdminOrCourseOwner, IsActivatedAccount]
     authentication_classes = [JWTAuthentication]
 
 
 class CourseAssignmentsListView(generics.ListAPIView):
     serializer_class = AssignmentSerializer
-    permission_classes = [IsAdminOrCourseOwner]
+    permission_classes = [IsAdminOrCourseOwner, IsActivatedAccount]
     authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
@@ -89,7 +95,7 @@ class CourseAssignmentsListView(generics.ListAPIView):
 class ClassroomListCreateView(generics.ListCreateAPIView):
     queryset = Classroom.objects.all()
     serializer_class = ClassroomSerializer
-    permission_classes = [IsAdminOrClassroomOwner]
+    permission_classes = [IsAdminOrClassroomOwner, IsActivatedAccount]
     authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
@@ -102,14 +108,14 @@ class ClassroomListCreateView(generics.ListCreateAPIView):
 class ClassroomDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Classroom.objects.all()
     serializer_class = ClassroomSerializer
-    permission_classes = [IsAdminOrClassroomOwner]
+    permission_classes = [IsAdminOrClassroomOwner, IsActivatedAccount]
     authentication_classes = [JWTAuthentication]
 
 
 class AssignmentListCreateView(generics.ListCreateAPIView):
     queryset = Assignment.objects.all()
     serializer_class = AssignmentSerializer
-    permission_classes = []
+    permission_classes = [IsAdminOrExaminerOrAssignmentOwner, IsActivatedAccount]
     authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
@@ -122,13 +128,13 @@ class AssignmentListCreateView(generics.ListCreateAPIView):
 class AssignmentDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Assignment.objects.all()
     serializer_class = AssignmentSerializer
-    permission_classes = [IsAdminOrExaminerOrAssignmentOwner]
+    permission_classes = [IsAdminOrExaminerOrAssignmentOwner, IsActivatedAccount]
     authentication_classes = [JWTAuthentication]
 
 
 class AssignmentSubmissionsListView(generics.ListAPIView):
     serializer_class = SubmissionSerializer
-    permission_classes = [IsAdminOrExaminerOrSubmissionOwner]
+    permission_classes = [IsAdminOrExaminerOrSubmissionOwner, IsActivatedAccount]
     authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
@@ -149,7 +155,7 @@ class AssignmentSubmissionsListView(generics.ListAPIView):
 class SubmissionListCreateView(generics.ListCreateAPIView):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
-    permission_classes = [IsAdminOrExaminerOrSubmissionOwner]
+    permission_classes = [IsAdminOrExaminerOrSubmissionOwner, IsActivatedAccount]
     authentication_classes = [JWTAuthentication]
 
     def get_queryset(self):
@@ -177,7 +183,7 @@ class SubmissionListCreateView(generics.ListCreateAPIView):
 class SubmissionDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Submission.objects.all()
     serializer_class = SubmissionSerializer
-    permission_classes = [IsAdminOrExaminerOrSubmissionOwner]
+    permission_classes = [IsAdminOrExaminerOrSubmissionOwner, IsActivatedAccount]
     authentication_classes = [JWTAuthentication]
 
 
