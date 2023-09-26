@@ -166,8 +166,12 @@ class SubmissionListCreateView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         user = self.request.user
+        assignment = serializer.validated_data.get('assignment')
+        existing_submission = Submission.objects.filter(user=user, assignment=assignment).first()
+        if existing_submission:
+            raise ValidationError("You have already submitted this assignment.")
         if user.is_admin or user.is_staff:
-            # Allow admins and examiners to specify the user field.
+            # Allow admins and examiners to specify the user field (even if the assignment is expired.
             serializer.save()
         else:
             # For other users, automatically fill the user field with their own ID.

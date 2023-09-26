@@ -1,7 +1,7 @@
-from datetime import datetime
-
 from django.contrib.auth.models import BaseUserManager, AbstractUser
 from django.db import models
+from django.utils import timezone
+from .validators import validate_file_size
 
 
 class CustomUserManager(BaseUserManager):
@@ -73,14 +73,15 @@ class Assignment(models.Model):
         return self.title
 
 
-def generate_file_name(instance, filename):
+def generate_file_name(instance, original_filename):
     # Get assignment title, user's first name, and user's last name
     assignment_title = instance.assignment.title
     user_first_name = instance.user.first_name
     user_last_name = instance.user.last_name
-
+    timestamp = timezone.now().strftime('%Y%m%d%H%M%S')
+    extension = original_filename.split('.')[-1]
     # Construct the final file name
-    file_name = f"submissions/{assignment_title}_{user_first_name}_{user_last_name}.py"
+    file_name = f"submissions/{assignment_title}_{user_first_name}_{user_last_name}_{timestamp}.{extension}"
 
     return file_name
 
@@ -89,26 +90,14 @@ class Submission(models.Model):
     user = models.ForeignKey('CustomUser', on_delete=models.CASCADE, null=False)
     assignment = models.ForeignKey(Assignment, on_delete=models.CASCADE, null=False)
     sub_date = models.DateTimeField(auto_now_add=True)
-    file = models.FileField(upload_to=generate_file_name)
+    file = models.FileField(upload_to=generate_file_name, validators=[validate_file_size])
     comment = models.TextField(max_length=500, null=True)
     score = models.SmallIntegerField(null=False, blank=False, default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    @staticmethod
-    def generate_file_name(instance, filename):
-        # Get assignment title, user's first name, and user's last name
-        assignment_title = instance.assignment.title
-        user_first_name = instance.user.first_name
-        user_last_name = instance.user.last_name
-
-        # Format the submission date as YYYYMMDDHHMMSS
-        submission_date = datetime.now().strftime('%Y%m%d%H%M%S')
-
-        # Construct the final file name
-        file_name = f"{assignment_title}_{user_first_name}{user_last_name}_{submission_date}.py"
-
-        return f"submissions/{file_name}"  # Specify the subdirectory within 'media/'
+    class Meta:
+        unique_together = ('user', 'assignment')
 
     def __str__(self):
         return f"{self.user} - {self.assignment}"
