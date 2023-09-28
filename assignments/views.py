@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Exists, OuterRef, BooleanField, Case, When, Value
 from django.utils import timezone
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -122,7 +123,19 @@ class AssignmentListCreateView(generics.ListCreateAPIView):
         if self.request.user.is_admin or self.request.user.is_staff:
             return Assignment.objects.all()
         else:
-            return Assignment.objects.filter(course__classrooms__users=self.request.user)
+            assignments = Assignment.objects.annotate(
+                is_submitted=Case(
+                    When(
+                        Exists(
+                            Submission.objects.filter(assignment=OuterRef('pk'), user=self.request.user)
+                        ),
+                        then=Value(True)
+                    ),
+                    default=Value(False),
+                    output_field=BooleanField()
+                )
+            ).filter(course__classrooms__users=self.request.user)
+            return assignments
 
 
 class AssignmentDetailView(generics.RetrieveUpdateDestroyAPIView):

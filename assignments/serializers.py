@@ -55,6 +55,8 @@ class CourseSerializer(serializers.ModelSerializer):
 
 
 class AssignmentSerializer(serializers.ModelSerializer):
+    is_submitted = serializers.BooleanField(read_only=True)
+
     class Meta:
         model = Assignment
         fields = '__all__'
