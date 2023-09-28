@@ -28,7 +28,7 @@ urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/', include('assignments.urls')),
-
+    path('api/', include('analytics.urls')),
     path('api/activate/', views.activate, name='activate'),
 
     # DOCS URLs
