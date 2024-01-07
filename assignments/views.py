@@ -1,11 +1,12 @@
 from django.contrib.auth import get_user_model
 from django.db.models import Exists, OuterRef, BooleanField, Case, When, Value
 from django.utils import timezone
+from django.views.static import serve
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, status
 from rest_framework.decorators import api_view
-from rest_framework.exceptions import ValidationError, PermissionDenied, AuthenticationFailed
+from rest_framework.exceptions import ValidationError, PermissionDenied, AuthenticationFailed, NotFound
 from rest_framework.response import Response
 from rest_framework_simplejwt.authentication import JWTAuthentication
 
@@ -36,18 +37,11 @@ class UserListCreateView(generics.ListCreateAPIView):
         import string
         password = ''.join(random.choices(string.ascii_letters + string.digits, k=12))
 
-        # Create a new user with the generated password
-        user = CustomUser.objects.create_user(
-            email=self.request.data['email'],
-            password=password,
-        )
-        user.first_name = self.request.data['first_name']
-        user.last_name = self.request.data['last_name']
-        user.save()
+        # Save the user instance using the serializer
+        user = serializer.save(password=password)
 
+        # Send activation mail
         send_activation_mail(user.email, password)
-
-        return user
 
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -251,3 +245,10 @@ def activate(request):
     token = token_serializer.get_token(user)
 
     return Response({'refresh': str(token), 'access': str(token.access_token)}, status=status.HTTP_200_OK)
+
+
+def protected_serve(request, path, document_root=None, show_indexes=False):
+    if not request.user.is_authenticated or not (request.user.is_admin or request.user.is_staff):
+        raise NotFound("Not found")
+
+    return serve(request, path, document_root, show_indexes)
